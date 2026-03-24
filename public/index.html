@@ -737,30 +737,20 @@
     document.getElementById('battery').textContent = '';
   }
 
-  // ── STARTUP BANNER ──
-  let startupMode = 'ab';
-
-  function selectStartupMode(btn) {
-    document.querySelectorAll('#startup-banner .opt-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    startupMode = btn.dataset.mode;
-  }
-
-  function confirmStartup() {
-    selectedMode = startupMode;
-    // Dismiss banner + blocker with animation
-    const banner = document.getElementById('startup-banner');
-    const blocker = document.getElementById('startup-blocker');
-    banner.style.transition = 'transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s';
-    banner.style.transform = 'translateY(-100%)';
-    banner.style.opacity = '0';
-    blocker.style.transition = 'opacity 0.4s';
-    blocker.style.opacity = '0';
-    setTimeout(() => {
-      banner.remove();
-      blocker.remove();
-    }, 420);
-  }
+// ── STARTUP PROMPT ──
+(function() {
+  const choice = prompt(
+    "sole ツ — choose how to open:\n\n" +
+    "'a'  = about:blank\n" +
+    "'b'  = blob cloaking\n" +
+    "'m'  = current tab iframe\n" +
+    "'ac' = about:blank & tab anchor\n" +
+    "'bc' = blob cloaking & anchor\n" +
+    "'mc' = current tab & tab anchor"
+  );
+  const map = { a:'ab', b:'blob', m:'iframe', ac:'ac', bc:'bc', mc:'mc' };
+  selectedMode = map[choice?.toLowerCase().trim()] || 'ab';
+})();
 
   // ── BROWSE BAR ──
   let browseOpen = false;

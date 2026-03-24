@@ -788,7 +788,7 @@
     if (!val) return;
     if (!/^https?:\/\//i.test(val)) {
       if (val.includes('.') && !val.includes(' ')) val = 'https://' + val;
-      else val = 'https://www.google.com/search?q=' + encodeURIComponent(val);
+     else val = 'https://duckduckgo.com/?q=' + encodeURIComponent(val);
     }
     pendingUrl = val;
     launchProxy();

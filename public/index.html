@@ -10,9 +10,13 @@
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/uv/sw.js", {
-        scope: __uv$config.prefix,
-      });
+      if (typeof __uv$config !== 'undefined') {
+        navigator.serviceWorker.register("/uv/sw.js", {
+          scope: __uv$config.prefix,
+        }).catch(err => console.warn('SW registration failed:', err));
+      } else {
+        console.warn('UV config not loaded — service worker not registered');
+      }
     });
   }
 </script>
@@ -242,6 +246,19 @@
     selectedMode = map[choice?.toLowerCase().trim()] || 'ab';
   })();
 
+  // ── UV GUARD ──
+  function uvReady() {
+    return typeof __uv$config !== 'undefined';
+  }
+
+  function buildUrl(url) {
+    if (!uvReady()) {
+      console.error('UV config not loaded. Check that /uv/uv.bundle.js and /uv/uv.config.js are being served correctly.');
+      return null;
+    }
+    return __uv$config.prefix + __uv$config.encodeUrl(url);
+  }
+
   // ── STARS ──
   const canvas = document.getElementById('stars');
   const ctx = canvas.getContext('2d');
@@ -364,10 +381,6 @@
 
   let pendingUrl = '';
 
-  function buildUrl(url) {
-    return __uv$config.prefix + __uv$config.encodeUrl(url);
-  }
-
   function triggerGo() {
     let val = document.getElementById('url-input').value.trim();
     if (!val) return;
@@ -376,13 +389,26 @@
       else val = 'https://duckduckgo.com/?q=' + encodeURIComponent(val);
     }
     pendingUrl = val;
+
+    // Check UV is loaded before trying to proxy
+    if (!uvReady()) {
+      showNotif('Proxy not loaded — check /uv/ files are deployed', true);
+      console.error('UV config missing. Ensure /uv/uv.bundle.js, /uv/uv.config.js, and /uv/sw.js are deployed and accessible.');
+      return;
+    }
+
     launchProxy();
   }
 
   function launchProxy() {
     const url = pendingUrl;
     if (!url) return;
+
     const proxied = buildUrl(url);
+    if (!proxied) {
+      showNotif('Failed to build proxy URL', true);
+      return;
+    }
 
     switch (selectedMode) {
       case 'ab': {
